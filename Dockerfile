@@ -1,6 +1,11 @@
-FROM tomcat:8.5-alpine
-COPY target/projectmanagerapi-0.0.1-SNAPSHOT.war /usr/local/tomcat/webapps/app.war
-COPY tomcat/tomcat-users.xml /usr/local/tomcat/conf/
-COPY tomcat/context.xml /usr/local/tomcat/webapps/manager/META-INF/
-CMD ["catalina.sh", "run"]
+FROM maven:3.5-jdk-8-alpine as maven
+ARG MAVEN_OPTS
+WORKDIR /app
+COPY . /app/
+RUN mvn clean package -Dmaven.test.skip=true
+
+FROM openjdk:8
+WORKDIR /app
+COPY --from=maven /app/target/projectmanagerapi-0.0.1-SNAPSHOT.jar /app/
 EXPOSE 8080
+CMD ["java","-jar","projectmanagerapi-0.0.1-SNAPSHOT.jar"]
